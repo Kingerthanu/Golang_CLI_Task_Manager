@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -24,10 +25,30 @@ func main() {
 
 	flag.Parse()
 
-	err, manager := task_management.MakeTaskManager("Demo Tasks")
+	dataDir := "data"
+	tasksFile := filepath.Join(dataDir, "salmon.json")
+
+	// Create directory if it doesn't exist
+	if err := os.MkdirAll(dataDir, 0755); err != nil {
+		log.Fatal("Error creating directory:", err)
+	}
+
+	var manager *task_management.TaskManager
+
+	// Try to load existing file
+	manager, err := task_management.LoadFromFile(tasksFile)
 	if err != nil {
-		log.Fatal(err)
-		os.Exit(1)
+		// File doesn't exist or is invalid, create new manager
+		err, manager = task_management.MakeTaskManager("Demo Task")
+		if err != nil {
+			log.Fatal("Error: Failed Creation Of Task Manager:", err)
+		}
+		manager.SetPath(tasksFile)
+
+		// Create initial empty file
+		if err := manager.SaveToFile(); err != nil {
+			log.Fatal("Error creating initial file:", err)
+		}
 	}
 
 	if *create {
@@ -58,6 +79,7 @@ func main() {
 
 	} else if *live {
 
+		defer manager.SaveToFile()
 		runInteractiveMode(manager)
 
 	} else {

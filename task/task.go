@@ -10,6 +10,49 @@ type Task struct {
 	id          int
 }
 
+type TaskDTO struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Status      int    `json:"status"`
+	Done        bool   `json:"done"`
+}
+
+func (t *Task) ToDTO() TaskDTO {
+
+	return TaskDTO{
+		ID:          t.id,
+		Name:        t.name,
+		Description: t.description,
+		Status:      t.status,
+		Done:        t.done,
+	}
+
+}
+
+func (t *Task) FromDTO(dto TaskDTO) error {
+	if err := t.SetName(dto.Name); err != nil {
+		return err
+	}
+	if err := t.SetDescription(dto.Description); err != nil {
+		return err
+	}
+	if err := t.SetStatus(dto.Status); err != nil {
+		return err
+	}
+	if err := t.SetDone(dto.Done); err != nil {
+		return err
+	}
+	if err := t.setID(dto.ID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func NewTaskFromDTO(dto TaskDTO) (*Task, error) {
+	return NewTask(dto.ID, dto.Name, dto.Description, dto.Status, dto.Done)
+}
+
 func (task *Task) GetStatus() int {
 
 	return task.status

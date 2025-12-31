@@ -2,13 +2,55 @@ package task_management
 
 import (
 	"CLI_Task_Manager/task"
+	"encoding/json"
 	"errors"
+	"os"
 )
 
 type TaskManager struct {
-	tasks  map[int]*task.Task
-	nextID int
-	name   string
+	tasks    map[int]*task.Task
+	nextID   int
+	name     string
+	filepath string
+}
+
+type TaskManagerDTO struct {
+	Tasks    map[int]task.TaskDTO `json:"tasks"`
+	NextID   int                  `json:"nextID"`
+	Name     string               `json:"name"`
+	Filepath string               `json:"path"`
+}
+
+func (tm *TaskManager) ToDTO() TaskManagerDTO {
+	tasksDTO := make(map[int]task.TaskDTO)
+	for id, t := range tm.tasks {
+		tasksDTO[id] = t.ToDTO()
+	}
+
+	return TaskManagerDTO{
+		Tasks:    tasksDTO,
+		NextID:   tm.nextID,
+		Name:     tm.name,
+		Filepath: tm.filepath,
+	}
+}
+
+func (tm *TaskManager) FromDTO(dto TaskManagerDTO) error {
+	tm.tasks = make(map[int]*task.Task)
+
+	for id, taskDTO := range dto.Tasks {
+		t, err := task.NewTaskFromDTO(taskDTO)
+		if err != nil {
+			return err
+		}
+		tm.tasks[id] = t
+	}
+
+	tm.nextID = dto.NextID
+	tm.name = dto.Name
+	tm.filepath = dto.Filepath
+
+	return nil
 }
 
 func MakeTaskManager(name string) (error, *TaskManager) {
@@ -79,5 +121,59 @@ func (tm *TaskManager) GetNextID() int {
 func (tm *TaskManager) IncrementID() {
 
 	tm.nextID++
+
+}
+
+func (tm *TaskManager) SaveToFile() error {
+
+	if tm.filepath == "" {
+		return errors.New("Cannot Save To Empty FilePath...")
+	}
+
+	file, err := os.Create(tm.filepath)
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	dto := tm.ToDTO()
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	return encoder.Encode(dto)
+
+}
+
+func (tm *TaskManager) SetPath(path string) {
+
+	tm.filepath = path
+
+}
+
+func LoadFromFile(filepath string) (*TaskManager, error) {
+
+	file, err := os.Open(filepath)
+	if err != nil {
+		return nil, err
+	}
+
+	defer file.Close()
+
+	var dto TaskManagerDTO
+	dto.Filepath = filepath
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&dto)
+	if err != nil {
+		return nil, err
+	}
+
+	tm := &TaskManager{}
+	err = tm.FromDTO(dto)
+	if err != nil {
+		return nil, err
+	}
+
+	return tm, nil
 
 }
