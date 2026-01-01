@@ -22,14 +22,15 @@ func main() {
 	status := flag.Int("status", 0, "Task status")
 	done := flag.Bool("done", false, "Task completion status")
 	live := flag.Bool("live", false, "Loop And Update Manager")
+	dataDir := flag.String("dir", "data", "Folder Directory To Store")
+	filePath := flag.String("path", "salmon.json", "File Directory To Store")
 
 	flag.Parse()
 
-	dataDir := "data"
-	tasksFile := filepath.Join(dataDir, "salmon.json")
+	tasksFile := filepath.Join(*dataDir, *filePath)
 
 	// Create directory if it doesn't exist
-	if err := os.MkdirAll(dataDir, 0755); err != nil {
+	if err := os.MkdirAll(*dataDir, 0755); err != nil {
 		log.Fatal("Error creating directory:", err)
 	}
 
@@ -183,7 +184,7 @@ func runInteractiveMode(manager *task_management.TaskManager) {
 			}
 
 			task := manager.GetTask(id)
-			if task != nil {
+			if task == nil {
 				fmt.Println("Error:", err)
 				continue
 			}
