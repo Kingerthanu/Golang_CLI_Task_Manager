@@ -1,0 +1,14 @@
+{
+  "tasks": {
+    "0": {
+      "id": 0,
+      "name": "Hi",
+      "description": "23",
+      "status": 3,
+      "done": true
+    }
+  },
+  "nextID": 1,
+  "name": "Demo Task",
+  "path": "data\\salmon.json"
+}

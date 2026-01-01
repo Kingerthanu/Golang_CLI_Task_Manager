@@ -1,0 +1,14 @@
+{
+  "tasks": {
+    "0": {
+      "id": 0,
+      "name": "uhhh",
+      "description": "hi",
+      "status": 55,
+      "done": false
+    }
+  },
+  "nextID": 1,
+  "name": "Demo Task",
+  "path": "data\\tasks.json"
+}
